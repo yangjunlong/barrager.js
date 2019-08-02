@@ -1,0 +1,19 @@
+{
+  "name": "barrager",
+  "version": "0.0.1",
+  "description": "给指定网页容器添加弹幕",
+  "main": "barrager.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yangjunlong/barrager.js.git"
+  },
+  "author": "sobird",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yangjunlong/barrager.js/issues"
+  },
+  "homepage": "https://github.com/yangjunlong/barrager.js#readme"
+}
