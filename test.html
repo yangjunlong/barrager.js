@@ -23,6 +23,7 @@
         overflow: hidden;
 
         background: #ccc;
+        width: 500px;
       }
 
       .barrage-item{
@@ -36,11 +37,56 @@
 
         transition: transform 10s linear 0.1s;
       }
+
+      .chat{
+        margin-left: 500px;
+        height: 500px;
+        padding-left: 20px;
+      }
+      .chat input {
+        width: 200px;
+      }
     </style>
 </head>
 <body>
-
+  <div class="chat">
+    <input type="text" name="text" />
+    <button id="send">发送</button>
+  </div>
   
   <script type="text/javascript" src="barrager.js"></script>
+
+  <script type="text/javascript">
+    var mockData = [
+      '666',
+      '喷子们气不气',
+      '卧槽，牛逼啊',
+      '这主播打的太菜了',
+      '人体描边大师',
+      '突然暴毙，哈哈哈~~',
+      '喜欢看的朋友记得点个关注哦',
+      '这谁顶的住啊',
+      '所谓富贵险中求',
+      '顶我上去',
+      '大吉大利，今晚吃鸡'
+    ];
+
+
+    var barrager = new Barrager({
+      el: document.body
+    });
+
+    for (var i = 1; i < mockData.length; i++) {
+      barrager.shoot(mockData[i]);
+    }
+
+
+
+    var send = document.getElementById('send');
+    send.onclick = function() {
+      var text = document.getElementsByTagName('input')[0].value;
+      barrager.shoot(text);
+    }
+  </script>
 </body>
 </html>

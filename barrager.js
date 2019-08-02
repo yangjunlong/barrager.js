@@ -49,7 +49,10 @@ function Barrager(options) {
   this.barrageWidth = barrage.offsetWidth;
   this.barrageHeight = barrage.offsetHeight;
 
+  console.log(this.barrageHeight);
+
   this.tracks = [];
+  this.tracks.length = 5;
 
   // 根据弹幕高度设置 弹幕轨道数
   this.tracked = false;
@@ -75,14 +78,16 @@ Barrager.prototype.shoot = function(content, options) {
   item.innerHTML = content;
 
   bindTransitionEvent(item, function() {
-  	//this.remove();
+  	this.remove();
   });
   
   this.barrage.append(item);
 
+  var trackNum = this.whichTrack();
+
   var itemWidth = item.offsetWidth;
   item.style.right = -itemWidth + 'px';
-  item.style.top = '100px';
+  item.style.top = trackNum*30 + 'px';
 
   console.log(item.style.top);
 
@@ -91,6 +96,23 @@ Barrager.prototype.shoot = function(content, options) {
   window.requestAnimationFrame(()=>{
     item.style.transform = 'translateX(-'+offsetX+'px)';
   });
+}
+
+// 判断当前字幕应该进入哪一个轨道
+Barrager.prototype.whichTrack = function () {
+  var size = this.tracks.length;
+  var index = Math.floor(Math.random()*size);
+
+  var laststamp = this.tracks[index];
+  var timestamp = + new Date;
+
+  if(laststamp) {
+
+  } else {
+    laststamp = timestamp;
+  }
+
+  return index;
 }
 
 function bindTransitionEvent(el, callback) {
@@ -112,13 +134,4 @@ function whichTransitionEvent(){
       return transitions[t];
     }
   }
-}
-
-
-var barrager = new Barrager({
-  el: document.body
-});
-
-for (var i = 1; i < 10; i++) {
-  barrager.shoot(i + '.这是一条弹幕');
 }
