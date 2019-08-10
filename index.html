@@ -11,7 +11,6 @@
       }
       body{
         height: 100%;
-        height: 500px;
       }
 
       .barrage{
@@ -23,7 +22,7 @@
         overflow: hidden;
 
         background: #ccc;
-        width: 500px;
+        width: 900px;
       }
 
       .barrage-item{
@@ -39,8 +38,8 @@
       }
 
       .chat{
-        margin-left: 500px;
-        height: 500px;
+        margin-left: 900px;
+        height: 510px;
         padding-left: 20px;
       }
       .chat input {
@@ -57,6 +56,7 @@
   <script type="text/javascript" src="barrager.js"></script>
 
   <script type="text/javascript">
+    var roomId = getQuery('roomId') || 650;
     var mockData = [
       '666',
       '喷子们气不气',
@@ -87,6 +87,20 @@
       var text = document.getElementsByTagName('input')[0].value;
       barrager.shoot(text);
     }
+
+
+    function getQuery(variable){
+      let query = window.location.search.substring(1);
+      let vars = query.split("&");
+      for (let i=0;i<vars.length;i++) {
+        let pair = vars[i].split("=");
+        if(pair[0] == variable){return pair[1];}
+      }
+      return(false);
+    }
   </script>
+
+
+  <script type="text/javascript" src="bilibili.js"></script>
 </body>
 </html>
