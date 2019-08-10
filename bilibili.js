@@ -55,6 +55,12 @@ ws.onmessage = function(evt) {
 
   console.log('data received:', result);
 
+  result.body.forEach(function(item) {
+    if(item.cmd == 'DANMU_MSG') {
+      barrager.shoot(item.info[1]);
+    }
+  });
+
   if (result.op == 8) {
     heartBeat();
   }
