@@ -49,8 +49,13 @@
 </head>
 <body>
   <div class="chat">
-    <input type="text" name="text" />
-    <button id="send">发送</button>
+    <div><input type="text" name="text" />
+    <button id="send">发送</button></div>
+
+    <div><input type="text" placeholder="哔哩哔哩房间ID" name="text" />
+    <button id="setRoomId">设置真实房间ID</button>
+    <button id="getRoomId">查看真实房间ID</button>
+  </div>
   </div>
   
   <script type="text/javascript" src="barrager.js"></script>
@@ -76,16 +81,27 @@
       el: document.body
     });
 
-    for (var i = 1; i < mockData.length; i++) {
-      barrager.shoot(mockData[i]);
-    }
-
-
+    // for (var i = 1; i < mockData.length; i++) {
+    //   barrager.shoot(mockData[i]);
+    // }
 
     var send = document.getElementById('send');
     send.onclick = function() {
       var text = document.getElementsByTagName('input')[0].value;
       barrager.shoot(text);
+    }
+
+    var setRoomId = document.getElementById('setRoomId');
+
+    setRoomId.onclick = function() {
+      var roomId = document.getElementsByTagName('input')[1].value;
+      window.location.href = '?roomId=' + roomId;
+    }
+
+    var getRoomId = document.getElementById('getRoomId');
+    getRoomId.onclick = function() {
+      var roomId = document.getElementsByTagName('input')[1].value;
+      window.open('https://api.live.bilibili.com/room/v1/Room/room_init?id='+roomId);
     }
 
 

@@ -55,7 +55,7 @@ ws.onmessage = function(evt) {
 
   console.log('data received:', result);
 
-  result.body.forEach(function(item) {
+  result.body.forEach && result.body.forEach(function(item) {
     if(item.cmd == 'DANMU_MSG') {
       barrager.shoot(item.info[1]);
     }
