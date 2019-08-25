@@ -41,6 +41,13 @@
         margin-left: 900px;
         height: 510px;
         padding-left: 20px;
+        position: relative;
+      }
+      .container{
+        position: absolute;
+        height: 510px;
+        width: 900px;
+        left: -920px;
       }
       .chat input {
         width: 200px;
@@ -49,6 +56,7 @@
 </head>
 <body>
   <div class="chat">
+    <div id="container" class="container"></div>
     <div><input type="text" name="text" />
     <button id="send">发送</button></div>
 
@@ -57,6 +65,8 @@
     <button id="getRoomId">查看真实房间ID</button>
   </div>
   </div>
+
+  <p>相关博文：<a href="https://sobird.me/bilibili-live-barrage-websocket.htm">哔哩哔哩直播弹幕WebSocket协议编码解析</a></p>
   
   <script type="text/javascript" src="barrager.js"></script>
 
@@ -78,7 +88,7 @@
 
 
     var barrager = new Barrager({
-      el: document.body
+      el: 'container'
     });
 
     // for (var i = 1; i < mockData.length; i++) {

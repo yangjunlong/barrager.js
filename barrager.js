@@ -26,12 +26,10 @@ var transitionEvent = whichTransitionEvent();
 
 function Barrager(options) {
   var el = options.el;
-  this.el = typeof el === 'string' ? document.getElementById(el) : el;
-
-  
+  this.el = el = typeof el === 'string' ? document.getElementById(el) : el;
 
   if(el.style.position !== 'absolute') {
-	el.style.position = 'relative';
+	el.style.position = 'absolute';
   }
 
   var barrage = document.createElement('div');
