@@ -8,6 +8,34 @@
 var ws = new WebSocket('wss://broadcastlv.chat.bilibili.com:2245/sub');
 ws.binaryType = 'arraybuffer';
 
+var constants = {
+  // 客户端发送心跳值
+  WS_OP_HEARTBEAT: 2,
+  // 服务端返回心跳值
+  WS_OP_HEARTBEAT_REPLY: 3,
+  // 返回消息
+  WS_OP_MESSAGE: 5,
+  // 用户授权加入房间
+  WS_OP_USER_AUTHENTICATION: 7,
+  // 建立连接成功，客户端接收到此信息时需要返回一个心跳包
+  WS_OP_CONNECT_SUCCESS: 8,
+  // Header Length
+  WS_PACKAGE_HEADER_TOTAL_LENGTH: 16,
+  WS_PACKAGE_OFFSET: 0,
+  WS_HEADER_OFFSET: 4,
+  WS_VERSION_OFFSET: 6,
+  WS_OPERATION_OFFSET: 8,
+  WS_SEQUENCE_OFFSET: 12,
+  WS_BODY_PROTOCOL_VERSION_NORMAL: 0,
+  // deflate 压缩版本
+  WS_BODY_PROTOCOL_VERSION_DEFLATE: 2,
+  WS_HEADER_DEFAULT_VERSION: 1,
+  WS_HEADER_DEFAULT_OPERATION: 1,
+  WS_HEADER_DEFAULT_SEQUENCE: 1,
+  WS_AUTH_OK: 0,
+  WS_AUTH_TOKEN_ERROR: -101
+};
+
 var auth_params = {
   'uid': 1,
   'roomid': roomId,
@@ -42,23 +70,25 @@ var wsBinaryHeaderList = [{
   value: 1
 }];
 
-ws.onopen = function() {
+ws.onopen = function () {
   // Web Socket 已连接上，使用 send() 方法发送数据
   var data = JSON.stringify(auth_params);
   var byte = convertToArrayBuffer(data, 7);
   ws.send(byte);
-  console.log('ws.sending...', byte);
+  console.log('ws.sending...', auth_params);
 };
 
-ws.onmessage = function(evt) {
+ws.onmessage = function (evt) {
   var result = convertToObject(evt.data);
 
   console.log('data received:', result);
 
-  result.body.forEach && result.body.forEach(function(item) {
-    if(item.cmd == 'DANMU_MSG') {
-      barrager.shoot(item.info[1]);
-    }
+  result.body.forEach && result.body.forEach(function (item) {
+    item.forEach && item.forEach( msg => {
+      if (msg.cmd == 'DANMU_MSG') {
+        barrager.shoot(msg.info[1]);
+      }
+    });
   });
 
   if (result.op == 8) {
@@ -66,12 +96,12 @@ ws.onmessage = function(evt) {
   }
 };
 
-ws.onclose = function() {
+ws.onclose = function () {
   // 关闭 websocket
   console.log('ws closed.');
 };
 
-ws.onerror = function(err) {
+ws.onerror = function (err) {
   // 关闭 websocket
   console.log('ws error:', err);
 };
@@ -101,6 +131,11 @@ function stringToByte(str) {
   return bytes;
 }
 
+/**
+ * 将服务端返回的arraybuffer转化为客户端可读的对象
+ * 
+ * @param {ArrayBuffer} arraybuffer 
+ */
 function convertToObject(arraybuffer) {
   var dataview = new DataView(arraybuffer);
   var output = {
@@ -108,7 +143,7 @@ function convertToObject(arraybuffer) {
   };
   output.packetLen = dataview.getInt32(0);
 
-  wsBinaryHeaderList.forEach(function(item) {
+  wsBinaryHeaderList.forEach(function (item) {
     4 === item.bytes ? output[item.key] = dataview.getInt32(item.offset) : 2 === item.bytes && (output[item.key] = dataview.getInt16(item.offset))
   });
 
@@ -140,6 +175,52 @@ function convertToObject(arraybuffer) {
   return output;
 }
 
+function convertToObject(e) {
+  var t = new DataView(e),
+    n = {
+      body: []
+    };
+
+  n.packetLen = t.getInt32(constants.WS_PACKAGE_OFFSET);
+
+  wsBinaryHeaderList.forEach((function (e) {
+    4 === e.bytes ? n[e.key] = t.getInt32(e.offset) : 2 === e.bytes && (n[e.key] = t.getInt16(e.offset))
+  }))
+
+  n.packetLen < e.byteLength && convertToObject(e.slice(0, n.packetLen))
+
+  var decoder = getDecoder();
+
+  if (!n.op || constants.WS_OP_MESSAGE !== n.op && n.op !== constants.WS_OP_CONNECT_SUCCESS) {
+    n.op && constants.WS_OP_HEARTBEAT_REPLY === n.op && (n.body = {
+      count: t.getInt32(constants.WS_PACKAGE_HEADER_TOTAL_LENGTH)
+    });
+  } else {
+    for (var r = constants.WS_PACKAGE_OFFSET,
+      s = n.packetLen,
+      l = "",
+      u = ""; r < e.byteLength; r += s) {
+      s = t.getInt32(r),
+        l = t.getInt16(r + constants.WS_HEADER_OFFSET);
+      try {
+        if (n.ver === constants.WS_BODY_PROTOCOL_VERSION_DEFLATE) {
+          var c = e.slice(r + l, r + s),
+            d = pako.inflate(new Uint8Array(c));
+          u = convertToObject(d.buffer).body
+        } else {
+          var h = decoder.decode(e.slice(r + l, r + s));
+          u = 0 !== h.length ? JSON.parse(h) : null
+        }
+        u && n.body.push(u)
+      } catch (t) {
+        console.error("decode body error:", new Uint8Array(e), n, t)
+      }
+    }
+  }
+
+  return n;
+}
+
 
 function convertToArrayBuffer(data, t) {
   var encoder = getEncoder();
@@ -149,7 +230,7 @@ function convertToArrayBuffer(data, t) {
 
   return dataview.setInt32(0, 16 + encode.byteLength),
     wsBinaryHeaderList[2].value = t,
-    wsBinaryHeaderList.forEach(function(e) {
+    wsBinaryHeaderList.forEach(function (e) {
       4 === e.bytes ? dataview.setInt32(e.offset, e.value) : 2 === e.bytes && dataview.setInt16(e.offset, e.value)
     }),
     mergeArrayBuffer(buffer, encode)
@@ -164,7 +245,7 @@ function mergeArrayBuffer(e, t) {
 
 function getDecoder() {
   return window.TextDecoder ? new window.TextDecoder : {
-    decode: function(e) {
+    decode: function (e) {
       return decodeURIComponent(window.escape(String.fromCharCode.apply(String, new Uint8Array(e))))
     }
   }
@@ -172,7 +253,7 @@ function getDecoder() {
 
 function getEncoder() {
   return window.TextEncoder ? new window.TextEncoder : {
-    encode: function(e) {
+    encode: function (e) {
       for (var t = new ArrayBuffer(e.length), n = new Uint8Array(t), i = 0, r = e.length; i < r; i++) {
         n[i] = e.charCodeAt(i);
       }
@@ -189,7 +270,7 @@ function heartBeat() {
 
   console.log(HEART_BEAT_TIMER);
   ws.send(t);
-  HEART_BEAT_TIMER = setTimeout(function() {
+  HEART_BEAT_TIMER = setTimeout(function () {
     heartBeat()
   }, 30000);
 }
